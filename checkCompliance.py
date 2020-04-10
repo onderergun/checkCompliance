@@ -7,7 +7,6 @@ import sys
 import json
 import requests
 from requests import packages
-import datetime
 import time
 
 
@@ -89,23 +88,10 @@ class serverCvp(object):
             raise serverCvpError(text)
         return response.json()["data"]
 
-def send_mail(send_from, send_to, subject, message, files=[],
-              server="localhost", port=587, username='', password='',
-              use_tls=True):
-    """Compose and send email with provided info and attachments.
+def send_mail(send_from, send_to, subject, message, files,
+              server, port, username, password,
+              use_tls):
 
-    Args:
-        send_from (str): from name
-        send_to (str): to name
-        subject (str): message title
-        message (str): message body
-        files (list[str]): list of file paths to be attached to email
-        server (str): mail server host name
-        port (int): port number
-        username (str): server auth username
-        password (str): server auth password
-        use_tls (bool): use TLS mode
-    """
     msg = MIMEMultipart()
     msg['From'] = send_from
     msg['To'] = COMMASPACE.join(send_to)
@@ -159,17 +145,16 @@ def main():
     events = cvpSession.getEventDataById(eventId)
     outofsync = ""
     numOutofsync = 0
-    i=0
+
     for event in events:
-       if events[i]["message"] != "Completed":
-           outofsync = outofsync + (events[i]["data"]["fqdn"]+ " " + events[i]["message"] + "\n")
+       if event["message"] != "Completed":
+           outofsync = outofsync + (event["data"]["fqdn"]+ " " + event["message"] + "\n")
            numOutofsync +=1
-       i +=1
 
     print ("Logout from CVP:%s"% cvpSession.logOut()['data'])
 
-    send_from = "senderemail@domain.com"
-    send_to = ["receiveremail@domain.com"]
+    send_from = "sender@domain.com"
+    send_to = ["receiver@domain.com"]
     if numOutofsync != 0:
         subject = "Check Compliance "+d1 + '__' + str(numOutofsync) + " Devices Out of Sync"
     else:
